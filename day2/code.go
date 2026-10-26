@@ -17,4 +17,30 @@ func main() {
 	}
 	fmt.Println(l1.x1)
 	l1.x1 = 10
+
+	// var numberA int = 4
+	// var numberB *int = &numberA
+
+	// fmt.Println("numberA (value)   :", numberA)  // 4
+	// fmt.Println("numberA (address) :", &numberA) // 0xc20800a220
+
+	// fmt.Println("numberB (value)   :", *numberB) // 4
+	// fmt.Println("numberB (address) :", numberB)  // 0xc20800a220
+
+	var numberA int = 4
+	var numberB *int = &numberA
+
+	fmt.Println("numberA (value)   :", numberA)
+	fmt.Println("numberA (address) :", &numberA)
+	fmt.Println("numberB (value)   :", *numberB)
+	fmt.Println("numberB (address) :", numberB)
+
+	fmt.Println("")
+
+	numberA = 5
+
+	fmt.Println("numberA (value)   :", numberA)
+	fmt.Println("numberA (address) :", &numberA)
+	fmt.Println("numberB (value)   :", *numberB)
+	fmt.Println("numberB (address) :", numberB)
 }

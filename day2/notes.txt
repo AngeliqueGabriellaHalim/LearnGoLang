@@ -29,3 +29,30 @@ l1 := line{}
 to modify or acces, use dot 
 
 note: doesnt support inheritance
+
+
+------------
+POINTER
+-----------
+var number *int
+var name *string
+
+1. DEFAULT value pointer = nil
+
+2. ambil nilai pointer : &variable --> referencing
+3. ambil value var nya : *variable --> dereferencing
+4. ubah isi variabel poitner dengan nilai pointer sama = isinya ikutn berubah
+5. pointer sebagai parameters
+
+func change(original *int, value int) {
+    *original = value
+}
+func main() {
+    var number = 4
+    fmt.Println("before :", number) // 4
+
+    change(&number, 10)
+    fmt.Println("after  :", number) // 10
+}
+
+

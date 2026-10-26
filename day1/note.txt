@@ -477,6 +477,7 @@ return a + b
 }
 //input a and b, return type int
 
+//VARIADIC : CAN ACCEPT UNLIMITED AMOUNT OF INPUT WITH SAME TYPE
 func add(params ...int) int {
 total := 0
 for _, v := range params {
