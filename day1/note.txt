@@ -1,0 +1,634 @@
+Day 3 - 3
+*go is:
+1. fast runtime : compile straight to machine code (no jvm, no py interpreter)
+2. statically typed
+3. compile time fast
+4. built in concurency --> goroutines and channels (for async task)
+5. auto garbage collection*/
+
+GO Project structure:
+go-level-structure/
+│
+├── cmd/
+│   └── main.go                  # Application entrypoint (bootstrap, start server)
+│
+├── internal/
+│   ├── handlers/                # HTTP handlers for incoming REST requests
+│   │   └── todo.go              # Todo HTTP handler (Gin logic, JSON binding)
+│   │
+│   ├── store/                   # Data persistence layer (Repository pattern)
+│   │   └── memory.go            # In-memory store (useful for dev/testing)
+│   │
+│   ├── routes/                  # App routing setup
+│   │   └── routes.go            # Registers endpoints + middleware binding
+│   │
+│   ├── services/                # Business logic layer (recommended addition)
+│   │   └── todo_service.go      # Todo business logic using stores + external clients
+│   │
+│   ├── clients/                 # External REST API clients (HTTP calls to other services)
+│   │   └── weather_client.go    # Example: calling external weather API
+│   │
+│   ├── dto/                     # Request/response DTOs (optional)
+│   │   └── todo_dto.go
+│   │
+│   └── config/                  # Internal config helpers (if not using pkg/config)
+│       └── loader.go
+│
+├── pkg/                         # Reusable helper libraries (no business logic)
+│   ├── config/
+│   │   └── config.go            # Load env vars, config structs, Viper, etc.
+│   │
+│   ├── logger/
+│   │   └── logger.go            # Project-wide logger (zerolog/logrus/zap wrapper)
+│   │
+│   ├── middleware/
+│   │   ├── cors.go              # CORS setup
+│   │   └── requestid.go         # Injects X-Request-ID for tracing
+│   │
+│   ├── response/
+│   │   └── json.go              # Unified JSON success/error response helpers
+│   │
+│   ├── utils/
+│   │   ├── strings.go           # String utilities (slugify, split, trim, etc.)
+│   │   └── conv.go              # Type conversion utilities (Atoi, float, etc.)
+│   │
+│   └── security/
+│       ├── hash.go              # Password hashing (bcrypt/argon2)
+│       └── jwt.go               # JWT sign/verify utilities
+│
+├── .air.toml                    # Live reload config, hot-reload toll. when code-> auto rebuild and reload server
+├── .env                         # Local environment variables
+├── go.mod
+└── Makefile                     # Build, run, lint, test automation
+
+
+
+1. in cmd/ mungkin bisa jadi:
+cmd/
+  api/
+    main.go
+  worker/
+    main.go
+  migrate/
+    main.go
+
+2. internal: business specific
+/handlers/:
+	http handler : func untuk respond incoming api calls
+	handle http dan business logic
+/store/:
+	talk to db / for data access
+	handler call store, store call db
+/routes:
+	daftar endpoint api untuk diakses client, menentukan handler yg menangani req
+3. pkg/: oublic, can be imported by external models
+
+example layout internal in bigger scale:
+internal/
+├── users/
+│   ├── handler.go
+│   ├── store.go
+│   ├── routes.go
+│   └── model.go
+├── products/
+│   ├── handler.go
+│   ├── store.go
+│   ├── routes.go
+│   └── model.go
+└── auth/
+    ├── handler.go
+    ├── store.go
+    ├── routes.go
+    └── model.go
+
+
+1. THE CLEAN ARCH
+project-name/
+│
+├── cmd/
+│   └── app/
+│       └── main.go
+│
+├── internal/
+│   │
+│   ├── domain/               ← Entities + Domain logic
+│   │   └── todo/
+│   │       ├── entity.go
+│   │       ├── value_objects.go
+│   │       └── repository.go
+│   │
+│   ├── usecase/              ← Application services / business rules
+│   │   └── todo/
+│   │       ├── create.go
+│   │       ├── list.go
+│   │       ├── mark_done.go
+│   │       └── delete.go
+│   │
+│   ├── interface/            ← Adapters (REST handlers, gRPC, CLI)
+│   │   └── rest/
+│   │       └── todo_handler.go
+│   │
+│   ├── infrastructure/       ← Frameworks & drivers
+│   │   ├── persistence/
+│   │   │   └── todo_memory.go
+│   │   ├── http/
+│   │   │   └── router.go
+│   │   ├── config/
+│   │   └── logger/
+│   │
+│   └── bootstrap/            ← Wiring, DI, app startup
+│       └── initialize.go
+│
+├── pkg/                      ← Reusable libraries/utilities
+│   ├── middleware/
+│   ├── security/
+│   ├── response/
+│   ├── utils/
+│   └── logger/
+│
+├── go.mod
+├── Makefile
+└── .env
+
+2. HEXAGONAL ARCH: separating business logic from ext system. framework independent, highly testable, extremely easy to extend, clear separation of domain vs infrastructure
+project/
+│
+├── cmd/
+│   └── app/
+│       └── main.go
+│
+├── internal/
+│   │
+│   ├── domain/                 ← Core business logic
+│   │   └── todo/
+│   │       ├── entity.go
+│   │       ├── service.go
+│   │       └── repository.go   (port)
+│   │
+│   ├── application/            ← Use cases (input ports)
+│   │   └── todo/
+│   │       ├── create.go
+│   │       ├── list.go
+│   │       ├── mark_done.go
+│   │       └── delete.go
+│   │
+│   ├── adapters/               ← OUTBOUND adapters (output ports implementations)
+│   │   ├── persistence/
+│   │   │   ├── todo_memory.go
+│   │   │   └── todo_postgres.go
+│   │   ├── publisher/
+│   │   │   └── todo_event.go
+│   │   └── external/
+│   │       └── notify_service.go
+│   │
+│   ├── ports/                  ← INBOUND & OUTBOUND ports
+│   │   ├── inbound/
+│   │   │   └── todo_port.go    (handler interface)
+│   │   └── outbound/
+│   │       └── todo_repository.go (repository interface)
+│   │
+│   ├── transport/              ← INBOUND adapters (REST, gRPC, CLI)
+│   │   ├── rest/
+│   │   │   ├── todo_handler.go
+│   │   │   └── http_router.go
+│   │   └── grpc/
+│   │       └── todo_service.go
+│   │
+│   └── bootstrap/              ← Wiring everything together
+│       └── wire.go             (or manual DI)
+│
+├── pkg/
+│   ├── logger/
+│   ├── utils/
+│   ├── middleware/
+│   └── response/
+│
+├── go.mod
+├── Makefile
+└── .env
+
+3. repo pattern : how to organize project when you want to isolate persistence logic behind repo interfaces. EXTREMELY COMMON:
+project/
+│
+├── cmd/
+│   └── app/
+│       └── main.go
+│
+├── internal/
+│   ├── handlers/              ← HTTP handlers (Gin, Fiber, Chi, etc.)
+│   │   └── todo_handler.go
+│   │
+│   ├── repositories/          ← Interfaces + implementations
+│   │   ├── todo_repository.go         (interface)
+│   │   ├── todo_memory.go            (in-memory impl)
+│   │   ├── todo_postgres.go          (postgres impl)
+│   │   └── mocks/                    (mock repos for testing)
+│   │       └── todo_repository_mock.go
+│   │
+│   ├── services/              ← Business logic using repos
+│   │   └── todo_service.go
+│   │
+│   ├── models/                ← Domain/entities
+│   │   └── todo.go
+│   │
+│   ├── routes/
+│   │   └── routes.go
+│   │
+│   └── config/
+│       └── config.go
+│
+├── pkg/                       ← Shared utilities
+│   ├── response/
+│   ├── logger/
+│   └── utils/
+│
+├── go.mod
+└── Makefile
+
+----------------------------
+LITERALS:
+syntax that express a particular value
+1. integer literal : expressing integer value
+  > 1254 : base 10 integer literal
+  > 0b0100 : binary number
+  > 0o72 : octal number
+  >0xFF: hexa number
+2. FLOAT literal:
+  > 12.3, base 10 
+  > 0x74.2, hexa number
+  > 12.3e4, decimal with exponent
+  > 0x74.2p3, hexa with exponent
+
+3. rune literal: rep CHAR
+> 'a' : rune literal
+> '\n' : escape sequence
+
+4. string literal:
+  a. interpreted string literal : 
+    - use ""
+    - escape seq is usable
+    > "Hello, world\n"
+  b. raw string literal:
+    - use ``
+    - escape seq not usable
+    > `This is a "raw string"`
+    - use to create multi line string
+  c. boolean: rep Boolean val : true or false
+
+
+------------------
+variable
+------------------
+1. provide unsigned int types
+2. signed type using 2s complement mechanism
+
+type :
+1. int8
+2. int16
+3. int32
+4. int64
+5. uint8 / byte
+6. uint16
+7. uint32
+8. uint64
+
+type int --> int32 for 32-bit cpu, int64 for most 64 bit cpu
+9. float32
+10.  float64
+11. rune: for CHAR
+12. string
+13. bool
+
+
+declare a var :
+var <var name> <var type>
+var status bool
+
+declare multiple var at once:
+var x, y int
+var a, b = 1, 2
+
+var(
+  x=2
+  y int = 5
+  a,b = 1,2
+  z int
+  name string
+)
+
+note: DEFAULT TYPE for integer is int
+
+declare a var (pt.2): use :=
+myName := "John Doe"
+myAge := 29
+myName, myAge := "John Doe", 29
+
+-----------
+TYPE conversion
+--------------
+
+var x int8 = 12
+var y int16 = int16(x)
+
+---------
+CONST
+-----------
+UNCHANGEABLE AND READNONLY
+1. const may or may not be typed
+2. var thats value cant be changed
+3. cannot be declared using :=
+4. const can be string, char, bool, numeric
+5. name usually in UPPERCASE
+
+const X int = 12 
+const Y = 12
+const AA. BB = 1,2
+const (
+  A int = 1
+  B = 3.14
+  C = "Hi!"
+)
+
+---------
+IOTA
+---------
+-> is a built in counter inside const declaration
+const (
+    Summer = iota // 0
+    Autumn        // 1
+    Winter        // 2
+    Spring        // 3
+)
+func main() {
+    fmt.Println(Winter) // Outputs: 2
+}
+
+-------------
+ARRAYS
+-------------
+- collection of values of the same type, indexed with integers
+- must have a size initialized, CANNOT USE VARIABLE to specify array size 
+- size cannot change at runtime
+- invalid index --> program panic
+
+var x [5]int
+y := [3]int{10,11,12}
+z:= [...]int{20,30}
+
+- array can be compareed using == 
+x := [3]int{1, 2, 3}
+y := [3]int{1, 2, 3}
+if x == y {
+fmt.Println(“x is equal to y”)
+}
+
+-equal array : same size and same value in same positions
+- copying array --> 
+x := [3]int{1, 2, 3}
+y := x
+
+- len: size of array
+
+------------
+SLICE
+------------
+1. can be created dynamically during runtime
+2. can be resized
+3. behave like array
+4. init like array without size
+x := []int{1, 2, 3, 4, 5}
+x[0] = 10
+fmt.Println(x[1])
+
+APPEND : add element to blkg slice
+LEN: retrive len of slice, length: num of element
+cap : size of allocated memo --> cap()
+
+4. assigning slice to diff var, is NOT COPY ing the slice. changing one, change the others. karena share same memory space
+
+making slices:
+x := make([]int, 10) //len 10, cap 10
+x := make ([]int, 0, 10) //len 0, cap 10
+
+equal? slices.Equal()
+import "slices"
+x := []int{1, 2, 3}
+y := []int{1, 2, 3}
+if slices.Equal(x, y) {
+fmt.Println(“x and y are equal”)
+}
+
+
+------------
+String
+------------
+1. can copy to string and convert to slices
+greeting := "Hello!"
+gb := []byte(greeting)
+gr := []rune:(greeting)
+
+---------
+MAP
+----------
+create:
+myMap := map [string]int{} //string key, int value
+
+DO NOT : var myMap map[string]int , mymap will be nil and cant be used
+
+1. use key to retrieve associated value
+2. key must be unique
+3. value doesnt have to be unique
+
+myMap := map[string]int{
+“one”: 1,
+“two”: 2,
+“three”: 3,
+}
+
+4. key with no associated value? output =  default value of the type
+5. to know whether key has assoc value:
+myMap := map[string]int{}
+myMap[“one”] = 1
+v, ok := myMap[“two”]
+//v return value, ok return true (exist) or false(no value)
+
+6. size? len()
+7. equality? maps.Equal()
+
+------------------
+BLOCKS
+------------------
+
+1. LOCAL BLOCKS 
+function = local block, func block, top level local block
+
+2. NON LOCAL BLOCKS
+  a. UNIVERSE block -> contains every built-in identifier and elements
+
+================
+BRANCHING
+================
+1. if
+- tidak eprlu () 
+- harus ada {} untuk blocking
+- if <condition>{
+
+  }
+
+> x:=2
+if x>1{
+  fmt.Println("x is larger than 2")
+  }else if x == 2{
+    fmt.Println("x is equal to 2")
+  }else{
+    fmt.Println("x is smaller than 2)
+  }
+>jika ingin x hanya dipakai untuk dalam if
+  if x:=2; x>1 {
+    fmt.Printf("x is larger than %d\n",x)
+  }
+  else ......
+
+2. switch
+>
+n:=4
+
+switch n{
+  case 1: 
+    fmt.Println("The n is one")
+  case 2:
+    fmt.Println("The n is two")
+  default:
+    fmt.Println("The n is neither one nor two")
+}
+
+switch n:=4; n{
+  case 1: 
+    fmt.Println("The n is one")
+  case 2:
+    fmt.Println("The n is two")
+  default:
+    fmt.Println("The n is neither one nor two")
+}
+
+condition in the case clause
+switch n := 5; {
+  case n < 6:
+    fmt.Printf("%d is smaller than 6\n", n)
+  case n > 6:
+    fmt.Printf("%d is larger than 6\n", n)
+  default:
+    fmt.Printf("%d is equal to 6\n", n)
+}
+
+switch {
+  case i > 5 && i % 5 == 0 && i % 3 == 0:
+    fmt.Printf("%d is a multiple of 3 and 5\n", i)
+  case i > 3 && i % 3 == 0:
+    fmt.Printf("%d is a multiple of 3\n", i)
+  case i > 5 && i % 5 == 0:
+    fmt.Printf("%d is a multiple of 5\n", i)
+  default:
+    fmt.Printf("%d is neither a multiple of 3 and 5\n", i)
+}
+
+---------
+LOOP - FOR
+---------
+loop only have for. no while etc
+
+for i:=0 ; i<10; i++{
+  fmt.Println(i);
+}
+
+infinite loop:
+for{
+  fmt.Println("Hello, world")
+}
+
+infinite loop with break:
+i := 0
+for {
+  fmt.Println(“Hello, world!”)
+  if i > 9 {
+    break
+  }
+  i++
+}
+
+loop with continue:
+for i := 1; i <= 10; i++ {
+  if i % 2 == 1 {
+    continue
+  }
+  fmt.Println(i)
+}
+
+we can label the continue and break
+n := 5
+outer: for i := 0; i < n; i++ {
+  for j := 0; j < n; j++ {
+    if i < j {
+      continue outer
+    }
+    fmt.Println(i, j)
+  }
+}
+
+--------
+BASIC IO 
+--------
+
+Print
+
+var a int = 54
+var b float32 = 3.14
+fmt.Println(a, 12, b)
+
+var a int = 54
+var b float32 = 3.14
+fmt.Print(a, 12, b)
+
+var age int = 54
+var height float32 = 172.3
+fmt.Printf(“My age is %d, and my weight is %.2f\n”, age, height)
+
+
+SCAN
+
+var a int
+var b float32
+fmt.Scan(&a, &b)
+
+
+----------
+error
+----------
+
+1. theres no exception in go
+2. so, return a value of type error as last return value of function
+
+func divide(a, b int) (int, error) {
+  if b == 0 {
+  return 0, errors.New(“can’t divide by 0”)
+  }
+  return a / b, nil
+}
+
+create an error:
+1. errors.New()
+2. fmt.errorF() -> include runtime information
+  > func divide(a, b int) (int, error) {
+    if b == 0 {
+      return 0, fmt.Errorf(“can’t divide %d by %d”,a,b)
+    }
+    return a / b, nil
+  }
+
+
+sentinel error: predefined, constant error value indicate a specific, exception condition / state requires special handling
+
+var (
+ErrDivideByZero = errors.New("cannot divide by zero")
+ErrUnsupportedOp = errors.New("unsupported operation")
+)
