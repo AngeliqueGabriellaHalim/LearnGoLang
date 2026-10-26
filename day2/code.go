@@ -1,6 +1,21 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
+type student struct {
+		name  string
+		grade int
+	}
+
+	func (s student) sayHello() {
+		fmt.Println("halo", s.name)
+	}
+
+	func (s student) getNameAt(i int) string {
+		return strings.Split(s.name, " ")[i-1]
+	}
 
 func main() {
 	type line struct {
@@ -43,4 +58,12 @@ func main() {
 	fmt.Println("numberA (address) :", &numberA)
 	fmt.Println("numberB (value)   :", *numberB)
 	fmt.Println("numberB (address) :", numberB)
+
+	
+
+	var s1 = student{"john wick", 21}
+    s1.sayHello()
+
+    var name = s1.getNameAt(2)
+    fmt.Println("nama panggilan :", name)
 }

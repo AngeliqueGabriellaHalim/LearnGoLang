@@ -55,4 +55,26 @@ func main() {
     fmt.Println("after  :", number) // 10
 }
 
+------------
+ METHOD 
+ -----------
+ fungsi yang menempel pada suatu tipe data
+
+ type student struct {
+    name  string
+    grade int
+}
+
+func (s student) sayHello() {
+    fmt.Println("halo", s.name)
+}
+
+func (s student) getNameAt(i int) string {
+    return strings.Split(s.name, " ")[i-1]
+}
+
+fungsi menempel pada tipe data struct student
+
+METHOD POINTER 
+objek pemilik method berbentuk pointer
 
