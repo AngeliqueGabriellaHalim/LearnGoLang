@@ -76,5 +76,101 @@ func (s student) getNameAt(i int) string {
 fungsi menempel pada tipe data struct student
 
 METHOD POINTER 
-objek pemilik method berbentuk pointer
 
+objek pemilik method berbentuk pointer
+func (s *student) changeName2(name string) {
+    fmt.Println("---> on changeName2, name changed to", name)
+    s.name = name
+}
+
+nilai objek aslinya juga terganti, tidak hanya terganti di dalam function
+
+
+--------------------
+ACCESS MODIFIER
+--------------------
+berlaku untuk semua hal, jika namanya:
+1. diawali KAPITAL -> exported / public
+2. TIDAK diawali KAPITAL -> unexported / private
+
+
+---------------------
+INTERFACE 
+---------------------
+1. merupakan tipe data
+2. zero value = nil
+
+type hitung interface {
+    luas() float64
+    keliling() float64
+}
+
+----------------------
+EMBEDED INTERFACE
+----------------------
+INTERface bisa embed ke interface lain, example :
+type hitung2d interface {
+    luas() float64
+    keliling() float64
+}
+
+type hitung3d interface {
+    volume() float64
+}
+
+type hitung interface {
+    hitung2d
+    hitung3d
+}
+
+
+----------------------
+ANY / INTERFACE KOSONG / interface{}
+-----------------------
+1. tipe data yg bisa menampung segala jenis data
+
+    var secret interface{}
+
+    secret = "ethan hunt"
+    fmt.Println(secret)
+
+    secret = []string{"apple", "mango", "banana"}
+    fmt.Println(secret)
+
+    secret = 12.4
+    fmt.Println(secret)
+
+2. any merupakan alias interface{}
+    var data map[string]any
+
+    data = map[string]any{
+        "name":      "ethan hunt",
+        "grade":     2,
+        "breakfast": []string{"apple", "mango", "banana"},
+    }
+
+3. castingnya sama seperti cast interface
+    >contoh int
+    secret = 2
+    var number = secret.(int) * 10
+    fmt.Println(secret, "multiplied by 10 is :", number)
+
+    >contoh string
+      secret = []string{"apple", "mango", "banana"}
+    var fruits = strings.Join(secret.([]string), ", ")
+    fmt.Println(fruits, "is my favorite fruits")
+
+    >contoh pointer
+    type person struct {
+        name string
+        age  int
+    }
+
+    var secret interface{} = &person{name: "wick", age: 27}
+    var name = secret.(*person).name
+    fmt.Println(name)
+
+--------------------
+DEPENDENCY INJECTION
+--------------------
+1. Receive dependecy from external module drpd creating them internally
