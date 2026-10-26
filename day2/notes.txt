@@ -1,0 +1,31 @@
+---------
+STRUCTS 
+----------
+1. to group many related value with diff types
+
+example:
+type line struct{
+    x1 int
+    y1 int
+    x2 int
+    y2 int
+}
+
+INSTANIATE STRUCT:
+1. init all field, follow order of all fields
+l1 := line{2, 3, 4, 6}
+l2 := line{3, 3, 8, 8}
+
+2. init any order, un-init fields = type's zero value
+
+l1 := line{
+x1: 2,
+y1: 3,
+}
+
+3. init everything with zero value
+l1 := line{}
+
+to modify or acces, use dot 
+
+note: doesnt support inheritance

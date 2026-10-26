@@ -11,6 +11,13 @@ ErrDivideByZero = errors.New("cannot divide by zero")
 ErrUnsupportedOp = errors.New("unsupported operation")
 )
 
+func add(a int, b int) int {
+	return a + b
+	}
+	func substract(a int, b int) int {
+	return a - b
+	}
+
 // universal var
 const PI = 3.14
 
@@ -29,6 +36,13 @@ func divide(a, b int) (int, error) {
 		return 0, errors.New("can't divide by 0")
 	}
 	return a / b, nil
+}
+
+type honorificDecorator func(string) string
+func createHonorificDecorator(honorific string) honorificDecorator {
+	return func(name string) string {
+		return honorific + ". " + name
+	}
 }
 
 func main(){
@@ -102,5 +116,38 @@ func main(){
 	myMap := map[string]int{}
 	myMap["one"] = 1
 	fmt.Println(myMap["one"])
+
+	//for range
+	//iterate map
+	greetings := map[string]string{
+		"English": "Hello",
+		"French": "Bonjour",
+		"Japanese": "こんにちは",
+	}
+	for key, value := range greetings {
+		fmt.Println(key, value)
+	}
+	//iterate string
+	greeting2 := "こんにちは"
+	for _, ch := range greeting2 {
+	fmt.Printf("%c\n", ch)
+	}
+
+	//function as values
+	
+	ops := map[string] func(int, int) int {
+	"+": add,
+	"-": substract,
+	}
+	var opr1, opr2 int
+	var op string
+	fmt.Scan(&opr1, &op, &opr2)
+	fmt.Println(ops[op](opr1, opr2))
+	addMr := createHonorificDecorator("Mr")
+	addMs := createHonorificDecorator("Ms")
+	fmt.Println(addMr("Doe"))
+	fmt.Println(addMs("Doe"))
+	fmt.Println(addMr("Holmes"))
+	fmt.Println(addMs("Adler"))
 }
 

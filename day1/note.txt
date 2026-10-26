@@ -281,6 +281,7 @@ variable
 ------------------
 1. provide unsigned int types
 2. signed type using 2s complement mechanism
+3. every var must be used, except with name _ (UNDERSCORE)
 
 type :
 1. int8
@@ -465,6 +466,67 @@ function = local block, func block, top level local block
 2. NON LOCAL BLOCKS
   a. UNIVERSE block -> contains every built-in identifier and elements
 
+---------------------------
+FUNCTION  
+--------------------------
+1. method can be detached from any class
+2. contains set of statement with parameters as input and return values as Outputs
+
+func add(a int, b int) int {
+return a + b
+}
+//input a and b, return type int
+
+func add(params ...int) int {
+total := 0
+for _, v := range params {
+total += v
+}
+return total
+}
+
+params is a slice of type int
+
+result := add(1, 2, 3, 4, 5)
+fmt.Println(result)
+OR 
+nums := []int{1, 2, 3, 4, 5}
+result := add(nums...)
+fmt.Println(result)
+
+3. CAN HAVE multiple return value
+nums := []int{1, 2, 3, 4, 5}
+result := add(nums...)
+fmt.Println(result)
+
+receive-->
+nums := []int{1, 2, 3, 4, 5}
+result := add(nums...)
+fmt.Println(result)
+
+4. func can be contained in a variable
+func f1(a int) int {
+return a + 1
+}
+func main() {
+var f2 func(int) int = f1
+x := f2(3)
+fmt.Println(x)
+}
+
+5. can be declared as a type
+type operation func(int, int) int
+func main() {
+  ops := map[string] operation {
+    "+": add,
+    "-": substract,
+  }
+  var opr1, opr2 int
+  var op string
+  fmt.Scan(&opr1, &op, &opr2)
+  fmt.Println(ops[op](opr1, opr2))
+}
+
 ================
 BRANCHING
 ================
@@ -574,6 +636,29 @@ outer: for i := 0; i < n; i++ {
     fmt.Println(i, j)
   }
 }
+
+------------------
+LOOP - FOR RANGE
+------------------
+can iterate map, string, array, slice
+for i := range 10 { //0-9
+fmt.Println(i)
+}
+
+for range 10 {
+fmt.Println(“Hello, world!”)
+}
+
+
+greetings := []string{
+“Hello”,
+“Bonjour”,
+“こんにちは”,
+}
+for index, value := range greetings {
+fmt.Println(index, value)
+}
+RANGE OPERATOR will return index and value
 
 --------
 BASIC IO 
