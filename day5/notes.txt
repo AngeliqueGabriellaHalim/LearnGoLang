@@ -1,0 +1,52 @@
+database integration:
+
+library:
+1. github.com/jmoiron/sqlx --> simplify queries and amp db res into structs
+
+
+why use sql?
+without it, we need to manually scan each column, with sqlx we can use 
+db.Select(&users, "SELECT * FROM users")
+
+
+2. github.com/lib/pq : postgre driver (lib untuk app talk to posgtres db server) for database/sql
+
+why?
+connect go to postgresql
+
+import _ "github.com/lib/pq"
+
+db, err := sql.Open("postgres", connectionString)
+
+3. github.com/jackc/pgx/v5 : postgresql driver and toolkit with native postgresql featrures
+
+why?
+1. postgre has its own specific datatype etc, and pgx provide functionality to work with those directly
+2. provide tools for mananging connections, conn pools, transaction, and exec query
+
+WITHOUT LIBRARY sqlx.........
+we can query and retrieve res using go's built in database/sql
+but we need to scan each row and loop it and append each row res
+
+WITH SQLX......
+var user User
+
+err := db.Get(&user,
+    "SELECT id, name, email FROM users WHERE id = $1",
+    1,
+)
+
+var users []User
+
+err := db.Select(&users,
+    "SELECT id, name, email FROM users",
+)
+
+only one line to retrieve
+1. one row -> Get()
+2. multi row -> select()
+
+QUERYX : execute query and return multiple rows
+rows, err := db.Queryx("QUERY")
+
+STRUCTSCAN : takes current db row and put value into corresponding field in go struct

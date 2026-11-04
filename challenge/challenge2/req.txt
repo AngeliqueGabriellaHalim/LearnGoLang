@@ -1,0 +1,86 @@
+//create 1
+curl -i -X POST localhost:8080/accounts -H "Content-Type: application/json" -d @body.json -o res.json
+
+{"account_number":"1234567890","account_holder":"thomas","balance":500000}
+
+//create 2
+
+curl -i -X POST localhost:8080/accounts -H "Content-Type: application/json" -d @body.json -o res.json
+
+{"account_number":"0987654321","account_holder":"jane","balance":1000000}
+
+//get all
+curl -i localhost:8080/accounts
+
+//get by ID
+curl -i localhost:8080/accounts/066c58da-ac15-4a49-98be-60ec54a145b0
+
+//update
+curl -i -X PUT localhost:8080/accounts/066c58da-ac15-4a49-98be-60ec54a145b0 -H "Content-Type: application/json" -d @body.json -o res.json
+
+{"account_holder":"thomas","balance":700000}
+
+
+//transfer
+curl -i -X POST localhost:8080/transfer -H "Content-Type: application/json" -d @body.json
+
+//history
+curl -i localhost:8080/accounts/066c58da-ac15-4a49-98be-60ec54a145b0/transactions
+
+//delete with transactions
+curl -i -X DELETE localhost:8080/accounts/066c58da-ac15-4a49-98be-60ec54a145b0
+
+
+//delete without transactionscreate a third account (change the number in a copy of create1.json), then curl -i -X DELETE localhost:8080/accounts/ID-THIRD
+
+
+//test empty
+{}
+
+//test invalid
+{bad
+
+
+//negative balance
+{"account_number":"1111111111","account_holder":"neg","balance":-5}
+
+//no account_holder
+{"account_number":"2222222222","account_holder":"   ","balance":100}
+
+//update
+{"account_holder":"thomas","balance":700000}
+
+//update no balance
+{"account_holder":"thomas","balance":-1}
+
+//update negative
+{"account_holder":"thomas","balance":-1}
+
+//transfer ok
+{"from_account_id":"ID-THOMAS","to_account_id":"ID-JANE","amount":100000}
+
+
+// transfer insufficient
+{"from_account_id":"ID-THOMAS","to_account_id":"ID-JANE","amount":99999999999}
+
+//transfer zero
+{"from_account_id":"ID-THOMAS","to_account_id":"ID-JANE","amount":0}
+
+//transfer negatuce
+{"from_account_id":"ID-THOMAS","to_account_id":"ID-JANE","amount":-5}
+
+//transfer same account_holder
+{"from_account_id":"ID-THOMAS","to_account_id":"ID-THOMAS","amount":1000}
+
+//transfer bad uuid
+{"from_account_id":"abc","to_account_id":"ID-JANE","amount":1000}
+
+//transder from not from_account_id
+
+{"from_account_id":"00000000-0000-0000-0000-000000000000","to_account_id":"ID-JANE","amount":1000}
+
+//tf to not found
+{"from_account_id":"ID-THOMAS","to_account_id":"00000000-0000-0000-0000-000000000000","amount":1000}
+
+
+

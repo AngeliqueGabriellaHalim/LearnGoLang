@@ -1,0 +1,170 @@
+go http server (backend): receives and process the request
+1. listen for incoming http request
+2. receive req from clients
+3. process those req
+4. send http response back
+
+
+http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintln(w, "Hello, World!")
+})
+
+this register a handler untuk / url path -> when someone access http://localhost:8080/, go execute the function registered for /
+
+w http.ResponseWriter -> rep response yg dikirim kembali ke client. pakai w untuk tulis resp bodu, header, dan status code
+example : fmt.Fprintln(w, "Hello, World!") -> write helloworld ke http resp
+
+*http.Request -> berisi info soal incoming req
+seperti:
+r.Method: HTTP method (GET, POST, etc.).
+r.URL.Path: requested URL path.
+r.Header: request headers.
+r.Body: request body.
+
+http.ListenAndServe(":8080", nil)
+: server listen on port 8080
+nil -> go use default http req multiplexer(default router)
+
+
+http server : program listening for incoming req
+handler: func for processing req
+req: info sent by client to server
+resp: info sent back by server to client
+
+
+json
+: lightwright data interchange formar untuk bertukar data antar aplikasi
+
+encoding json: 
+library encoding/json
+-> functions untuk convert antara go data dan json
+
+1. marshalling (encoding) : go data -> json
+function:
+- json.Marshal(): convert go data into json bytes
+- json.MarshalIndent() : convert go data into formatted json bytes
+- string(data): convert the resulting bytes into a string
+
+2. unmarshalling (decoding): json -> go data
+- json.Unmarshal() : convert json bytes into go value
+- []byte(jsondata): convert string into bytes
+
+
+decoding an incoming req:
+var user User
+
+err := json.NewDecoder(r.Body).Decode(&user)
+if err != nil {
+    http.Error(w, "Invalid JSON", http.StatusBadRequest)
+    return
+}
+
+encoding a http response:
+w.Header().Set("Content-Type", "application/json")
+
+json.NewEncoder(w).Encode(user)
+
+
+HTTP REQUEST 
+biasanya berisi:
+1. http method : intended action of a request
+    a. GET: retrive data (Read)
+    b. POST: create a resource (CREATE)
+    c. PUT: replace/update a resource (UPDATE)
+    d. DELETE: remove a resource(DELETE)
+
+2. url atau path
+3. headers
+4. optional req body
+
+example:
+POST /users HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{
+    "name": "Angie",
+    "email": "angie@example.com"
+}
+
+HTTP methods from net/http:
+r.Method == http.MethodGet
+r.Method == http.MethodPost
+r.Method == http.MethodPut
+r.Method == http.MethodDelete
+
+STATUS CODES
+Category	Range	    Meaning
+1xx	        100–199	    Informational
+2xx	        200–299	    Success
+3xx	        300–399	    Redirection
+4xx	        400–499	    Client error
+5xx	        500–599	    Server error
+
+go provide constants for http status codes:
+http.StatusOK
+http.StatusCreated
+http.StatusNoContent
+http.StatusBadRequest
+http.StatusUnauthorized
+http.StatusForbidden
+http.StatusNotFound
+http.StatusInternalServerError
+
+
+------------------
+MIDDLEWARE
+--------------
+-> func that intercepts an HTTP req sebelum sampai ke final handler
+-> untuk implement functionality that should be shared across multiple endpoints
+-> misal: logging, auth, cors, rate limiting
+-> so that no repeating code in every handler
+
+
+flow:
+http req -> middleware (before handler exec) -> handler (process req) -> middleware (After handler exec) -> http resp
+
+func middleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+        // Logic before handler
+
+        next.ServeHTTP(w, r)
+
+        // Logic after handler
+    })
+}
+
+middleware chaining : you can use multiple middl func. misal: 
+req -> logging middle -> authentication midd -> handler -> resp
+
+common middleware type:
+- logging : records request info
+- authentication: verifies user identity
+- authorization: checks user permission
+- cors: controll cross origin access
+- rate limiting: limit req frequency
+- recovery: handles unexpected panics
+
+htt.Handler: anything that knows how to handle an HTTP req and write an HTTP resp
+
+context:
+1. control lifecycle operations: time limits or cancel task
+2. coordinates concurrent task
+3. shares metadata: pass small pieces of data between functions without relying on global variables
+
+kegunaan:
+1. DEADLINES: specify a time when the operation should end -> context.WithDeadline
+2. cancel -> context.WithCancel 
+3. resource management :  free up cpu, memo, or network resources by stopping unnecessary tasks
+4. value passing -> context.WithValue
+ctx := context.WithValue(context.Background(), "userID", "12345")
+	processRequest(ctx)
+5. time out -> context.WithTimeout
+ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+defer cancel()
+fmt.Println("Starting database query...")
+queryDatabase(ctx)
+
+
+
